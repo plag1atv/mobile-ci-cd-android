@@ -1,0 +1,65 @@
+services:
+  web-frontend:
+    build:
+      context: ./infra/web-frontend
+    container_name: web-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - mobile-net
+
+  api-gateway:
+    build:
+      context: ./infra/api-gateway
+    container_name: api-gateway
+    ports:
+      - "5000:5000"
+    environment:
+      - ANDROID_BUILD_SERVICE_URL=http://android-build-service:5001
+      - LOG_SERVICE_URL=http://log-service:5002
+    depends_on:
+      - android-build-service
+      - log-service
+    networks:
+      - mobile-net
+
+  android-build-service:
+    build:
+      context: ./infra/android-build-service
+    container_name: android-build-service
+    ports:
+      - "5001:5001"
+    networks:
+      - mobile-net
+
+  log-service:
+    build:
+      context: ./infra/log-service
+    container_name: log-service
+    ports:
+      - "5002:5002"
+    networks:
+      - mobile-net
+
+  db:
+    image: postgres:15-alpine
+    container_name: db
+    environment:
+      - POSTGRES_USER=ciuser
+      - POSTGRES_PASSWORD=cipassword
+      - POSTGRES_DB=cidblog
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./infra/db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - mobile-net
+
+networks:
+  mobile-net:
+
+volumes:
+  db-data:

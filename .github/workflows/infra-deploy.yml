@@ -1,0 +1,31 @@
+name: Infra Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-infra:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show Docker version
+        run: docker version
+
+      - name: Validate docker-compose configuration
+        run: docker compose config
+
+      - name: Build infra images
+        run: docker compose build
+
+      # В реальном проде здесь был бы шаг деплоя на удалённый сервер,
+      # например, по SSH. Для курсовой можно описать это теоретически.
+      - name: Show deploy commands (example)
+        run: |
+          echo "Для деплоя инфраструктуры на сервере выполняется:"
+          echo "docker compose up -d"
