@@ -11,9 +11,7 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,3 +33,24 @@ jobs:
 
       - name: Build debug APK
         run: ./gradlew assembleDebug
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: build   # этот job стартует после успешного job build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image for Android project
+        run: docker build -t android-builder-ci .
+
+      - name: Show Docker images
+        run: docker images | grep android-builder-ci || true
+
+      - name: Build project inside Docker container
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/opt/workspace \
+            -w /opt/workspace \
+            android-builder-ci ./gradlew assembleDebug
